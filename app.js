@@ -1,4 +1,4 @@
-// 🔥 FIREBASE - හැමෝටම එකම Data පෙන්නන්න
+// 🔥 FIREBASE - හැම එකම හැමෝටම පෙන්නන්න
 let db = null;
 try{
   const firebaseConfig = {
@@ -14,43 +14,84 @@ try{
   db = firebase.firestore();
 }catch(e){ console.log("Firebase OFF", e); }
 
+// හැම Collection එකක්ම Cloud එකට Save කරන්න
 async function saveToCloud(){
   if(!db) return;
   try{
-    const all = JSON.parse(localStorage.getItem('hms_v4_patients') || '[]');
-    for(const p of all){
-      await db.collection('patients').doc(p.id).set({...p, savedAt: Date.now()});
+    let allData = {
+      patients: patients, doctors: doctors, appointments: appointments,
+      labs: labs, meds: meds, bills: bills, donors: donors, emr: emrList, staff: staffList
+    };
+    for(let key in allData){
+      let list = allData[key] || [];
+      for(let item of list){
+        let docId = item.id || item.inv || item.phone || item.name;
+        if(!docId) continue;
+        await db.collection(key).doc(String(docId)).set({...item, savedAt: Date.now()});
+      }
     }
+    console.log("✅ All Saved to Cloud!");
   }catch(e){ console.log("Cloud Save Fail", e); }
 }
 
+// හැම Collection එකක්ම Cloud එකෙන් ගන්න
 async function loadFromCloud(){
   if(!db) return;
   try{
-    let snap = await db.collection('patients').orderBy('savedAt','desc').limit(100).get();
-    let cloudPatients = [];
-    snap.forEach(doc => { let d = doc.data(); if(d.name && d.id) cloudPatients.push(d); });
-    if(cloudPatients.length > 0){
-      localStorage.setItem('hms_v4_patients', JSON.stringify(cloudPatients));
-      patients = cloudPatients;
-      renderPatients(); updateDashboard();
-      console.log("✅ Loaded from Cloud:", cloudPatients.length);
+    let map = {patients:'patients', doctors:'doctors', appointments:'appointments', labs:'labs', meds:'meds', bills:'bills', donors:'donors', emr:'emr', staff:'staff'};
+    for(let cloudKey in map){
+      let localKey = map[cloudKey];
+      let snap = await db.collection(cloudKey).orderBy('savedAt','desc').limit(100).get();
+      let arr = [];
+      snap.forEach(doc => { let d = doc.data(); if(d) arr.push(d); });
+      if(arr.length > 0){
+        localStorage.setItem('hms_v4_' + localKey, JSON.stringify(arr));
+        // Variable එකටත් දාන්න
+        if(localKey==='patients') patients = arr;
+        if(localKey==='doctors') doctors = arr;
+        if(localKey==='appointments') appointments = arr;
+        if(localKey==='labs') labs = arr;
+        if(localKey==='meds') meds = arr;
+        if(localKey==='bills') bills = arr;
+        if(localKey==='donors') donors = arr;
+        if(localKey==='emr') emrList = arr;
+        if(localKey==='staff') staffList = arr;
+      }
     }
+    renderPatients(); renderDoctors(); renderAppointments(); renderLabs(); renderMeds(); renderBills(); renderDonors(); renderEMR(); renderStaff(); updateDashboard();
+    console.log("✅ All Loaded from Cloud!");
   }catch(e){ console.log("Load Fail", e); }
 }
 setTimeout(loadFromCloud, 1000);
+
+// Live Sync - කවුරු හරි අලුත් දෙයක් දැම්මොත් හැමෝටම පෙන්නන්න
 if(db){
-  db.collection('patients').onSnapshot(snap => {
-    let cloud = [];
-    snap.forEach(doc => { let d = doc.data(); if(d.name && d.id) cloud.push(d); });
-    if(cloud.length === 0) return;
-    // Local එකේ තියෙන අලුත් ඒවත් එකතු කරලා Merge කරන්න
-    let merged = [...patients];
-    cloud.forEach(c => { if(!merged.find(p=>p.id===c.id)) merged.push(c); });
-    merged.sort((a,b)=> (b.savedAt||0)-(a.savedAt||0));
-    localStorage.setItem('hms_v4patients', JSON.stringify(merged));
-    patients = merged;
-    try{ renderPatients(); updateDashboard(); }catch(e){}
+  ['patients','doctors','appointments','donors','labs','meds','bills','emr','staff'].forEach(col => {
+    db.collection(col).onSnapshot(snap => {
+      let cloud = [];
+      snap.forEach(doc => { let d = doc.data(); if(d) cloud.push(d); });
+      if(cloud.length === 0) return;
+      // Duplicate අයින් කරලා Merge කරන්න
+      let current = col==='patients'?patients : col==='doctors'?doctors : col==='appointments'?appointments : col==='donors'?donors : col==='labs'?labs : col==='meds'?meds : col==='bills'?bills : col==='emr'?emrList : staffList;
+      let merged = [...current];
+      cloud.forEach(c => {
+        let cid = c.id || c.inv || c.phone || c.name;
+        let exists = merged.find(p => (p.id||p.inv||p.phone||p.name) === cid);
+        if(!exists) merged.push(c);
+        else Object.assign(exists, c); // තියෙන එක Update කරන්න
+      });
+      localStorage.setItem('hms_v4_' + col, JSON.stringify(merged));
+      if(col==='patients') patients = merged;
+      if(col==='doctors') doctors = merged;
+      if(col==='appointments') appointments = merged;
+      if(col==='donors') donors = merged;
+      if(col==='labs') labs = merged;
+      if(col==='meds') meds = merged;
+      if(col==='bills') bills = merged;
+      if(col==='emr') emrList = merged;
+      if(col==='staff') staffList = merged;
+      try{ renderPatients(); renderDoctors(); renderAppointments(); renderDonors(); renderLabs(); renderMeds(); renderBills(); renderEMR(); renderStaff(); updateDashboard(); }catch(e){}
+    });
   });
 }
 const DB_KEY='hms_v4_';const $=id=>document.getElementById(id);
