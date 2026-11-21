@@ -47,6 +47,8 @@
 <div id="editModal" class="modal"><div class="modal-box" style="width:520px"><h2 id="editTitle">Edit</h2><div id="editFields"></div><div style="display:flex;gap:10px;margin-top:12px"><button class="btn btn-teal full" onclick="saveEdit()">💾 Save Changes</button><button class="btn btn-dark full" onclick="closeEdit()">Cancel</button></div></div></div>
 <div id="confirmModal" class="modal"><div class="modal-box" style="text-align:center"><div style="font-size:44px">⚠️</div><h2>Are you sure?</h2><p id="confirmMsg" style="color:#64748B"></p><div style="display:flex;gap:10px;margin-top:12px"><button class="btn btn-red full" onclick="confirmYes()">Yes, Delete</button><button class="btn btn-dark full" onclick="closeConfirm()">Cancel</button></div></div></div>
 <div id="toast"></div>
-<script type="module" src="app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
