@@ -214,6 +214,22 @@ window.closeSuccess = closeSuccess;
 window.closeSuccessAndScroll = closeSuccessAndScroll;
 window.closeEdit = closeEdit;
 window.saveEdit = saveEdit;
+
+
+
+// 🔥 FIX: Duplicate Patients අයින් කරන්න
+setTimeout(()=>{
+  // ID එක එක වගේ තියෙන අය අයින් කරන්න
+  let seen = {};
+  patients = patients.filter(p => {
+    if(seen[p.id]) return false;
+    seen[p.id] = true;
+    return true;
+  });
+  localStorage.setItem('hms_v4_patients', JSON.stringify(patients));
+  renderPatients();
+  console.log("✅ Duplicates Removed!");
+}, 1500);
 window.closeConfirm = closeConfirm;
 window.confirmYes = confirmYes;
 window.askDelete = askDelete;
