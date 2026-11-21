@@ -1,31 +1,3 @@
-// 🔥 FIREBASE - Compat Version - Edit/Delete කැඩෙන්නේ නැහැ!
-const firebaseConfig = {
-  apiKey: "AIzaSyCXo7kzir_Djpw6ssClEeiNhVlVrhO57dM",
-  authDomain: "city-care-hospital-aff77.firebaseapp.com",
-  projectId: "city-care-hospital-aff77",
-  storageBucket: "city-care-hospital-aff77.firebasestorage.app",
-  messagingSenderId: "848549671134",
-  appId: "1:848549671134:web:bde28b0b9bc21ef918124f",
-  measurementId: "G-Q8363VEPDH"
-};
-
-let db = null;
-try{
-  if(typeof firebase !== 'undefined'){
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    console.log("✅ Firebase Connected!");
-  }
-}catch(e){ console.log("Firebase Failed, Local Only", e); }
-
-async function saveToCloud(type, data){
-  if(!db) return;
-  try{
-    await db.collection(type).add({ ...data, savedAt: new Date().toISOString() });
-    console.log("✅ Saved to Firebase:", type);
-  }catch(e){ console.log("Cloud Save Failed", e); }
-}
-
 const DB_KEY='hms_v4_';const $=id=>document.getElementById(id);
 const load=(k,def)=>{try{const v=localStorage.getItem(DB_KEY+k);return v?JSON.parse(v):JSON.parse(JSON.stringify(def))}catch(e){return JSON.parse(JSON.stringify(def))}};
 const save=(k,v)=>localStorage.setItem(DB_KEY+k,JSON.stringify(v));
