@@ -17,7 +17,7 @@ try{
 async function saveToCloud(){
   if(!db) return;
   try{
-    const all = JSON.parse(localStorage.getItem('hms_v4patients') || '[]');
+    const all = JSON.parse(localStorage.getItem('hms_v4_patients') || '[]');
     for(const p of all){
       await db.collection('patients').doc(p.id).set({...p, savedAt: Date.now()});
     }
@@ -31,7 +31,7 @@ async function loadFromCloud(){
     let cloudPatients = [];
     snap.forEach(doc => { let d = doc.data(); if(d.name && d.id) cloudPatients.push(d); });
     if(cloudPatients.length > 0){
-      localStorage.setItem('hms_v4patients', JSON.stringify(cloudPatients));
+      localStorage.setItem('hms_v4_patients', JSON.stringify(cloudPatients));
       patients = cloudPatients;
       renderPatients(); updateDashboard();
       console.log("✅ Loaded from Cloud:", cloudPatients.length);
