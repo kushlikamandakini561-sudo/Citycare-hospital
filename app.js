@@ -2,13 +2,15 @@
 let db = null;
 try{
   const firebaseConfig = {
-    apiKey: "AIzaSyDDD9u2TQ0p1rBzUu4i6P7dQyZV6M",
-    authDomain: "patient-management-syste-5b70e.firebaseapp.com",
-    projectId: "patient-management-syste-5b70e",
-    storageBucket: "patient-management-syste-5b70e.firebasestorage.app",
-    messagingSenderId: "1033202941820",
-    appId: "1:1033202941820:web:3f9f43b40f2f35dcdf2fd25"
-  };
+  const firebaseConfig = {
+  apiKey: "AIzaSyCXo7kzir_Djpw6ssClEeiNhVlVrhO57dM",
+  authDomain: "city-care-hospital-aff77.firebaseapp.com",
+  projectId: "city-care-hospital-aff77",
+  storageBucket: "city-care-hospital-aff77.firebasestorage.app",
+  messagingSenderId: "848549671134",
+  appId: "1:848549671134:web:bde28b0b9bc21ef918124f",
+  measurementId: "G-Q8363VEPDH"
+};
   if(!firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
   db = firebase.firestore();
 }catch(e){ console.log("Firebase OFF", e); }
@@ -38,10 +40,21 @@ async function loadFromCloud(){
   }catch(e){ console.log("Load Fail", e); }
 }
 setTimeout(loadFromCloud, 1000);
-
+if(db){
+  db.collection('patients').onSnapshot(snap => {
+    let arr = [];
+    snap.forEach(doc => { let d = doc.data(); if(d.name && d.id) arr.push(d); });
+    if(arr.length > 0){
+      arr.sort((a,b)=> (b.savedAt||0)-(a.savedAt||0));
+      localStorage.setItem('hms_v4patients', JSON.stringify(arr));
+      patients = arr;
+      try{ renderPatients(); updateDashboard(); }catch(e){}
+    }
+  });
+}
 const DB_KEY='hms_v4_';const $=id=>document.getElementById(id);
 const load=(k,def)=>{try{const v=localStorage.getItem(DB_KEY+k);return v?JSON.parse(v):JSON.parse(JSON.stringify(def))}catch(e){return JSON.parse(JSON.stringify(def))}};
-const save=(k,v)=>localStorage.setItem(DB_KEY+k,JSON.stringify(v));
+const save=(k,v)=>{localStorage.setItem(DB_KEY+k,JSON.stringify(v)); if(k==='patients'){ saveToCloud(); }};
 function saveAll(){save('patients',patients);save('doctors',doctors);save('appointments',appointments);save('labs',labs);save('meds',meds);save('bills',bills);save('donors',donors);save('emr',emrList);save('staff',staffList);save('audit',auditLog);save('counters',{patCount,appCount,invCount});if($('lastUpdated'))$('lastUpdated').innerText=new Date().toLocaleTimeString(); if(patients.length>0) saveToCloud('patients_backup', { total: patients.length, lastPatient: patients[0] });}
 function showToast(m){let t=$('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',3800)}
 function scrollToId(id){$(id)?.scrollIntoView({behavior:'smooth',block:'start'})}
