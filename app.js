@@ -1,3 +1,44 @@
+// 🔥 FIREBASE - හැමෝටම එකම Data පෙන්නන්න
+let db = null;
+try{
+  const firebaseConfig = {
+    apiKey: "AIzaSyDDD9u2TQ0p1rBzUu4i6P7dQyZV6M",
+    authDomain: "patient-management-syste-5b70e.firebaseapp.com",
+    projectId: "patient-management-syste-5b70e",
+    storageBucket: "patient-management-syste-5b70e.firebasestorage.app",
+    messagingSenderId: "1033202941820",
+    appId: "1:1033202941820:web:3f9f43b40f2f35dcdf2fd25"
+  };
+  if(!firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
+  db = firebase.firestore();
+}catch(e){ console.log("Firebase OFF", e); }
+
+async function saveToCloud(){
+  if(!db) return;
+  try{
+    const all = JSON.parse(localStorage.getItem('hms_v4patients') || '[]');
+    for(const p of all){
+      await db.collection('patients').doc(p.id).set({...p, savedAt: Date.now()});
+    }
+  }catch(e){ console.log("Cloud Save Fail", e); }
+}
+
+async function loadFromCloud(){
+  if(!db) return;
+  try{
+    let snap = await db.collection('patients').orderBy('savedAt','desc').limit(100).get();
+    let cloudPatients = [];
+    snap.forEach(doc => { let d = doc.data(); if(d.name && d.id) cloudPatients.push(d); });
+    if(cloudPatients.length > 0){
+      localStorage.setItem('hms_v4patients', JSON.stringify(cloudPatients));
+      patients = cloudPatients;
+      renderPatients(); updateDashboard();
+      console.log("✅ Loaded from Cloud:", cloudPatients.length);
+    }
+  }catch(e){ console.log("Load Fail", e); }
+}
+setTimeout(loadFromCloud, 1000);
+
 const DB_KEY='hms_v4_';const $=id=>document.getElementById(id);
 const load=(k,def)=>{try{const v=localStorage.getItem(DB_KEY+k);return v?JSON.parse(v):JSON.parse(JSON.stringify(def))}catch(e){return JSON.parse(JSON.stringify(def))}};
 const save=(k,v)=>localStorage.setItem(DB_KEY+k,JSON.stringify(v));
