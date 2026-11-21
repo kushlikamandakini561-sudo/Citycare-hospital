@@ -42,19 +42,21 @@ async function loadFromCloud(){
 setTimeout(loadFromCloud, 1000);
 if(db){
   db.collection('patients').onSnapshot(snap => {
-    let arr = [];
-    snap.forEach(doc => { let d = doc.data(); if(d.name && d.id) arr.push(d); });
-    if(arr.length > 0){
-      arr.sort((a,b)=> (b.savedAt||0)-(a.savedAt||0));
-      localStorage.setItem('hms_v4patients', JSON.stringify(arr));
-      patients = arr;
-      try{ renderPatients(); updateDashboard(); }catch(e){}
-    }
+    let cloud = [];
+    snap.forEach(doc => { let d = doc.data(); if(d.name && d.id) cloud.push(d); });
+    if(cloud.length === 0) return;
+    // Local එකේ තියෙන අලුත් ඒවත් එකතු කරලා Merge කරන්න
+    let merged = [...patients];
+    cloud.forEach(c => { if(!merged.find(p=>p.id===c.id)) merged.push(c); });
+    merged.sort((a,b)=> (b.savedAt||0)-(a.savedAt||0));
+    localStorage.setItem('hms_v4patients', JSON.stringify(merged));
+    patients = merged;
+    try{ renderPatients(); updateDashboard(); }catch(e){}
   });
 }
 const DB_KEY='hms_v4_';const $=id=>document.getElementById(id);
 const load=(k,def)=>{try{const v=localStorage.getItem(DB_KEY+k);return v?JSON.parse(v):JSON.parse(JSON.stringify(def))}catch(e){return JSON.parse(JSON.stringify(def))}};
-const save=(k,v)=>{localStorage.setItem(DB_KEY+k,JSON.stringify(v)); if(k==='patients'){ saveToCloud(); }};
+const save=(k,v)=>{localStorage.setItem(DB_KEY+k,JSON.stringify(v)); if(k==='patients'){saveToCloud();}};
 function saveAll(){save('patients',patients);save('doctors',doctors);save('appointments',appointments);save('labs',labs);save('meds',meds);save('bills',bills);save('donors',donors);save('emr',emrList);save('staff',staffList);save('audit',auditLog);save('counters',{patCount,appCount,invCount});if($('lastUpdated'))$('lastUpdated').innerText=new Date().toLocaleTimeString(); if(patients.length>0) saveToCloud('patients_backup', { total: patients.length, lastPatient: patients[0] });}
 function showToast(m){let t=$('toast');t.innerText=m;t.style.display='block';setTimeout(()=>t.style.display='none',3800)}
 function scrollToId(id){$(id)?.scrollIntoView({behavior:'smooth',block:'start'})}
