@@ -1,7 +1,4 @@
-// 🔥 FIREBASE - Cloud එකට Save වෙන්න
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+// 🔥 FIREBASE - Compat Version - Edit/Delete කැඩෙන්නේ නැහැ!
 const firebaseConfig = {
   apiKey: "AIzaSyCXo7kzir_Djpw6ssClEeiNhVlVrhO57dM",
   authDomain: "city-care-hospital-aff77.firebaseapp.com",
@@ -12,14 +9,21 @@ const firebaseConfig = {
   measurementId: "G-Q8363VEPDH"
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
+let db = null;
+try{
+  if(typeof firebase !== 'undefined'){
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    console.log("✅ Firebase Connected!");
+  }
+}catch(e){ console.log("Firebase Failed, Local Only", e); }
 
 async function saveToCloud(type, data){
+  if(!db) return;
   try{
-    await addDoc(collection(db, type), { ...data, savedAt: new Date().toISOString() });
+    await db.collection(type).add({ ...data, savedAt: new Date().toISOString() });
     console.log("✅ Saved to Firebase:", type);
-  }catch(e){ console.log("Cloud Save Failed, Local Only:", e); }
+  }catch(e){ console.log("Cloud Save Failed", e); }
 }
 
 const DB_KEY='hms_v4_';const $=id=>document.getElementById(id);
