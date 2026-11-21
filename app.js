@@ -2,15 +2,14 @@
 let db = null;
 try{
   const firebaseConfig = {
-  const firebaseConfig = {
-  apiKey: "AIzaSyCXo7kzir_Djpw6ssClEeiNhVlVrhO57dM",
-  authDomain: "city-care-hospital-aff77.firebaseapp.com",
-  projectId: "city-care-hospital-aff77",
-  storageBucket: "city-care-hospital-aff77.firebasestorage.app",
-  messagingSenderId: "848549671134",
-  appId: "1:848549671134:web:bde28b0b9bc21ef918124f",
-  measurementId: "G-Q8363VEPDH"
-};
+    apiKey: "AIzaSyCXo7kzir_Djpw6ssClEeiNhVlVrhO57dM",
+    authDomain: "city-care-hospital-aff77.firebaseapp.com",
+    projectId: "city-care-hospital-aff77",
+    storageBucket: "city-care-hospital-aff77.firebasestorage.app",
+    messagingSenderId: "848549671134",
+    appId: "1:848549671134:web:bde28b0b9bc21ef918124f",
+    measurementId: "G-Q8363VEPDH"
+  };
   if(!firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
   db = firebase.firestore();
 }catch(e){ console.log("Firebase OFF", e); }
